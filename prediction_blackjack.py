@@ -10,7 +10,7 @@ class Agent():
         
         self.state_space = []
         self.returns = {}
-        self.states_visited = []
+        self.states_visited = {}
         self.memory = []
         self.gamma = gamma
         
