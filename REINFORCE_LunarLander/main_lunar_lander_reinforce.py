@@ -1,15 +1,7 @@
 import gym
-import matplotlib.pyplot as plt
 import numpy as np
 from reinforce import PolicyGradientAgent
-
-def plot_learning_curve(scores, x, figure_file):
-    running_average = np.zeros(len(scores))
-    for i in range(len(running_average)):
-        running_average[i] = np.mean(scores[max(0, i-100):(i+1)])
-    plt.plot(x, running_average)
-    plt.title('Running average over previous 100 scores')
-    plt.savefig(figure_file)
+from utils import plot_learning_curve
 
 if __name__=='__main__':
     env = gym.make('LunarLander-v2')
