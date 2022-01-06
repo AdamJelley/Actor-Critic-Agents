@@ -72,48 +72,46 @@ class Agent():
         new_state = T.tensor(new_state, dtype=T.float).to(self.critic_1.device)
         done = T.tensor(done).to(self.critic_1.device)
 
+        # Value network update
         value = self.value(state).view(-1)
-        new_value = self.target_value(new_state).view(-1)
-        new_value[done] = 0.0
-
         actions, log_probs = self.actor.sample_normal(state, reparameterize=False)
         log_probs = log_probs.view(-1)
         q1_new_policy = self.critic_1.forward(state, actions)
         q2_new_policy = self.critic_2.forward(state, actions)
         critic_value = T.min(q1_new_policy, q2_new_policy)
         critic_value = critic_value.view(-1)
-
-        self.value.optimizer.zero_grad()
         value_target = critic_value - log_probs
         value_loss = 0.5*F.mse_loss(value, value_target)
+        self.value.optimizer.zero_grad()
         value_loss.backward(retain_graph=True)
         self.value.optimizer.step()
 
+        # Actor network update
         actions, log_probs = self.actor.sample_normal(state, reparameterize=True)
         log_probs = log_probs.view(-1)
         q1_new_policy = self.critic_1.forward(state, actions)
         q2_new_policy = self.critic_2.forward(state, actions)
         critic_value = T.min(q1_new_policy, q2_new_policy)
         critic_value = critic_value.view(-1)
-
-        actor_loss = -(critic_value - log_probs)
-        actor_loss = T.mean(actor_loss)
+        actor_loss = T.sum(log_probs - critic_value)
         self.actor.optimizer.zero_grad()
         actor_loss.backward(retain_graph=True)
         self.actor.optimizer.step()
 
-        q_hat = self.scale*reward + self.gamma*new_value
+        # Critic network update
+        new_value_target = self.target_value(new_state).view(-1)
+        new_value_target[done] = 0.0
+        critic_target = self.scale*reward + self.gamma*new_value_target
         # Note we are using the sampled action 'action' (not 'actions') here corresponding to the old policy
-        q1_old_policy = self.critic_1.forward(state, action).view(-1)
-        q2_old_policy = self.critic_2.forward(state, action).view(-1)
-        critic_1_loss = 0.5*F.mse_loss(q1_old_policy, q_hat)
-        critic_2_loss = 0.5*F.mse_loss(q2_old_policy, q_hat)
-
+        q1 = self.critic_1.forward(state, action).view(-1)
+        q2 = self.critic_2.forward(state, action).view(-1)
+        critic_1_loss = 0.5*F.mse_loss(q1, critic_target)
+        critic_2_loss = 0.5*F.mse_loss(q2, critic_target)
         self.critic_1.optimizer.zero_grad()
-        self.critic_2.optimizer.zero_grad()
-        critic_loss = critic_1_loss + critic_2_loss
-        critic_loss.backward()
+        critic_1_loss.backward(retain_graph=True)
         self.critic_1.optimizer.step()
+        self.critic_2.optimizer.zero_grad()
+        critic_2_loss.backward(retain_graph=True)
         self.critic_2.optimizer.step()
 
         self.update_network_parameters()
