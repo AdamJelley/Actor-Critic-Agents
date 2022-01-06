@@ -45,7 +45,7 @@ class Agent():
         self.actor.load_checkpoint()
         self.target_actor.load_checkpoint()
         self.critic.load_checkpoint()
-        self.target_crtic.load_checkpoint()
+        self.target_critic.load_checkpoint()
 
     def learn(self):
         if self.memory.mem_cntr < self.batch_size:
