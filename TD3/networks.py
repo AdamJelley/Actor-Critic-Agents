@@ -40,7 +40,7 @@ class CriticNetwork(nn.Module):
 
     def load_checkpoint(self):
         print('... Loading Checkpoint ...')
-        self.load_state_dict(T.load(self.checpoint_file))
+        self.load_state_dict(T.load(self.checkpoint_file))
 
 class ActorNetwork(nn.Module):
     def __init__(self, alpha, input_dims, fc1_dims, fc2_dims, n_actions, name, chkpt_dir='checkpoints/td3'):
