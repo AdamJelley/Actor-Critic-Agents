@@ -77,13 +77,15 @@ class ActorNetwork(nn.Module):
 
         return mu, sigma
 
-    def sample_normal(self, state, reparameterize=True):
+    def sample_normal(self, state, evaluation=False, reparameterize=True):
         # For evaluation, want to return mu instead of action below, so could include boolean evaluation flag here
         # sourcery skip: assign-if-exp
         mu, sigma = self.forward(state)
         probabilities = Normal(mu, sigma)
 
-        if reparameterize:
+        if evaluation:
+            actions = mu
+        elif reparameterize:
             actions = probabilities.rsample()
         else:
             actions = probabilities.sample()

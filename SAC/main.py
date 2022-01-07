@@ -30,7 +30,7 @@ if __name__ == '__main__':
         done = False
         observation = env.reset()
         while not done:
-            action = agent.choose_action(observation)
+            action = agent.choose_action(observation, evaluation=load_checkpoint)
             new_observation, reward, done, info = env.step(action)
             steps += 1
             score += reward

@@ -24,9 +24,9 @@ class Agent():
         self.scale = reward_scale
         self.update_network_parameters(tau=1)
 
-    def choose_action(self, observation):
+    def choose_action(self, observation, evaluation=False):
         state = T.tensor([observation], dtype=T.float).to(self.actor.device)
-        actions, _ =  self.actor.sample_normal(state, reparameterize=False)
+        actions, _ =  self.actor.sample_normal(state, evaluation=evaluation, reparameterize=False)
         return actions.cpu().detach().numpy()[0]
 
     def remember(self, state, action, reward, new_state, done):
